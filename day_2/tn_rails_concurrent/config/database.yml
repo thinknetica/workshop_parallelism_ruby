@@ -1,0 +1,14 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  wait_timeout: 900 # 15 minutes.
+  timeout: 10000 # 5 seconds.
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS", 5).to_i + 10 + ENV.fetch("SIDEKIQ_CONCURENNCY", 2).to_i %>
+
+development:
+  <<: *default
+  database: tn_rails_dev
+
+test:
+  <<: *default
+  database: tn_rails_test
