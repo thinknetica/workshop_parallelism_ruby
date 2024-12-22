@@ -8,33 +8,48 @@ namespace :orders do
     require 'benchmark'
 
     Order.destroy_all
-    # Оптимизировать тут
-    Array.new(200) { Order.create!(product_id: rand(1..100), quantity: rand(1..10), current_status: :pending) }
+    data = Array.new(200) { { product_id: rand(1..100), quantity: rand(1..10), current_status: :pending } }
+    Order.import!(data)
 
     time = Benchmark.realtime do
-      puts Order.pending.count
-      # Оптимизировать тут
-      Order.pending.find_in_batches(batch_size: 50) do |batch|
+      puts pending_orders.count
+
+      batches = pending_orders.find_in_batches(batch_size: 50)
+      results = Parallel.flat_map(batches, in_threads: batches.size) do |batch|
         process_batch_with_http(batch)
       end
+
+      result = Order.import!(results, options)
+      result.ids.each { |order_id| puts "Successfully processed Order ##{order_id}" }
     end
 
     puts "Processed orders in #{time.round(2)} seconds with HTTP request"
   end
 
   def process_batch_with_http(batch)
-    batch.each do |order|
-      # Оптимизировать тут
+    Parallel.map(batch, in_threads: batch.size) do |order|
       response = send_to_external_service
       if response.code.to_i == 200
-        order.process!
-        puts "Successfully processed Order ##{order.id}"
+        { id: order.id, current_status: :processed }
       else
         raise "Failed to process Order ##{order.id}: #{response.body}"
       end
-    rescue StandardError => e
-      Rails.logger.error("Error processing Order ##{order.id}: #{e.message}")
     end
+  rescue StandardError => e
+    Rails.logger.error("Error processing Orders #{e.message}")
+  end
+
+  def options
+    {
+      on_duplicate_key_update: {
+        conflict_target: [:id],
+        columns:         [:current_status],
+      },
+    }
+  end
+
+  def pending_orders
+    @pending_orders ||= Order.pending
   end
 
   def send_to_external_service
