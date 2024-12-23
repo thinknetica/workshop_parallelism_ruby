@@ -1,0 +1,14 @@
+big_trip:
+  rider: jane
+  start_location: nyc
+  end_location: bos
+
+airport_trip:
+  rider: jessica
+  start_location: jfk
+  end_location: nyc
+
+girls_night_out:
+  rider: jessica
+  start_location: nyc
+  end_location: comedy_cellar

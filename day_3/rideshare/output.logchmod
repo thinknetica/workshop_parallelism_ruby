@@ -1,0 +1,6 @@
+Error: 'RIDESHARE_DB_PASSWORD' not set, can't continue.
+
+Check for an existing value in file: ~/.pgpass
+If there's a value, set it like this:
+export RIDESHARE_DB_PASSWORD="HSnDDgFtyW9fyFI"
+OR generate a new value (See comments in: db/setup.sh)

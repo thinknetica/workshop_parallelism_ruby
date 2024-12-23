@@ -1,0 +1,13 @@
+jane:
+  first_name: Jane
+  last_name: Doe
+  email: jane@email.com
+  type: Rider
+  password_digest: $2a$12$D0/yLVQ67zujhbLZUBkd3eD2w4oNaTg1MK2o2w3f4IOXiZ6az/X0O
+
+jessica:
+  first_name: Jessica
+  last_name: Cruz
+  email: jessica@email.com
+  type: Rider
+
