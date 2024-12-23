@@ -10,6 +10,8 @@
 #  updated_at     :datetime         not null
 #
 class Order < ApplicationRecord
+  belongs_to :product
+
   scope :pending, -> { where(current_status: :pending) }
   scope :processed, -> { where(current_status: :processed) }
   scope :cancelled, -> { where(current_status: :cancelled) }
