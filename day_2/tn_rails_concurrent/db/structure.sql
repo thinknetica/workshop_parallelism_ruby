@@ -79,7 +79,8 @@ CREATE TABLE public.products (
     stock integer,
     price numeric,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    orders_count integer
 );
 
 
@@ -158,12 +159,21 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
+-- Name: index_orders_on_product_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_orders_on_product_id ON public.orders USING btree (product_id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20241224195202'),
+('20241224192623'),
 ('20241216120643'),
 ('20241216120641');
 

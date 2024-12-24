@@ -10,7 +10,7 @@
 #  updated_at     :datetime         not null
 #
 class Order < ApplicationRecord
-  belongs_to :product
+  belongs_to :product, counter_cache: true
 
   scope :pending, -> { where(current_status: :pending) }
   scope :processed, -> { where(current_status: :processed) }
