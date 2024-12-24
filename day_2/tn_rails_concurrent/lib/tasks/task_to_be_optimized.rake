@@ -7,34 +7,52 @@ namespace :orders do
   task to_be_optimized: :environment do
     require 'benchmark'
 
-    Order.destroy_all
-    # Оптимизировать тут
-    Array.new(200) { Order.create!(product_id: rand(1..100), quantity: rand(1..10), current_status: :pending) }
+    Order.delete_all
+
+    orders = Array.new(200) do
+      {
+        product_id: rand(1..100),
+        quantity: rand(1..10),
+        current_status: :pending
+      }
+    end
+
+    Order.insert_all(orders)
 
     time = Benchmark.realtime do
-      puts Order.pending.count
-      # Оптимизировать тут
-      Order.pending.find_in_batches(batch_size: 50) do |batch|
-        process_batch_with_http(batch)
+      size_orders = Order.pending.size
+      puts size_orders
+      threads = []
+
+      Order.pending.in_batches(of: size_orders / 4, use_ranges: true) do |batch|
+        threads << Thread.new do
+          process_batch_with_http(batch)
+        end
       end
+      threads.each(&:join)
     end
 
     puts "Processed orders in #{time.round(2)} seconds with HTTP request"
   end
 
   def process_batch_with_http(batch)
-    batch.each do |order|
-      # Оптимизировать тут
-      response = send_to_external_service
-      if response.code.to_i == 200
-        order.process!
-        puts "Successfully processed Order ##{order.id}"
-      else
-        raise "Failed to process Order ##{order.id}: #{response.body}"
+    threads = []
+      batch.each do |order|
+        threads << Thread.new do
+
+        response = send_to_external_service
+        if response.code.to_i == 200
+          order.process!
+          puts "Successfully processed Order ##{order.id}"
+        else
+          raise "Failed to process Order ##{order.id}: #{response.body}"
+        end
+      rescue StandardError => e
+        Rails.logger.error("Error processing Order ##{order.id}: #{e.message}")
       end
-    rescue StandardError => e
-      Rails.logger.error("Error processing Order ##{order.id}: #{e.message}")
     end
+
+    threads.each(&:join)
   end
 
   def send_to_external_service
